@@ -13,6 +13,8 @@ networks:
     external: true
   internal:
     external: true
+  monitoring:
+    external: true
 
 #
 # Volumes
