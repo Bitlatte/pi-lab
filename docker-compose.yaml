@@ -143,18 +143,6 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
 
-  cadvisor:
-    container_name: cadvisor
-    image: google/cadvisor:latest
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    devices:
-      - /dev/kmsg
-
   grafana:
     container_name: grafana
     image: grafana/grafana:latest

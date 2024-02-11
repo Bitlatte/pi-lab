@@ -16,8 +16,12 @@ scrape_configs:
   #
   # Sets Prometheus to collect metrics on itself
   #
-  
+
   - job_name: 'prometheus'
     scrape_interval: 5s
     static_configs:
       - targets: ['prometheus:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node_exporter:9100']
