@@ -163,7 +163,7 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     restart: unless-stopped
     env_file:
-      - ./homepage/.env
+      - .env
     networks:
       - internal
     volumes:
