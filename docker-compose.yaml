@@ -129,15 +129,19 @@ services:
 
   node_exporter:
     container_name: node_exporter
-    image: quay.io/prometheus/node_exporter:latest
+    image: prom/node_exporter:latest
     restart: unless-stopped
     command:
-      - '--path.rootfs=/host'
-      - '--cap-add=SYS_TIME'
+      - '--path.rootfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     network_mode: host
     pid: host
     volumes:
-      - '/:/host:ro,rslave'
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
 
   cadvisor:
     container_name: cadvisor
