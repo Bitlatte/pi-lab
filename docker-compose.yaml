@@ -1,0 +1,160 @@
+version: '3.8'
+
+#
+# Networking
+#
+# Use two docker networks, one for outbound traffic
+# and one for internal traffic. This allows us to secure
+# services behind a reverse proxy.
+#
+
+networks:
+  outbound:
+    external: true
+  internal:
+    external: true
+
+#
+# Volumes
+#
+# Define volumes here for persistant storage.
+#
+
+volumes:
+  portainer_data:
+    external:
+      name: portainer_data
+  prometheus-data:
+    external:
+      name: prometheus-data
+  grafana-data:
+    external:
+      name: grafana-data
+
+#
+# Services
+#
+# Service Format
+#
+# <service_name>:
+#   container_name: <container_name>
+#   image: <image>:<image_version>
+#   restart: <restart_condition>
+#   environment:
+#     - <key>: <value>
+#   command:
+#     - "<command>"
+#   network_mode: <mode>
+#   networks:
+#     - <network>
+#   ports:
+#     - <host_port>:<container_port>
+#   volumes:
+#     - <host_path/docker_volume>:<container_path>
+#
+# Define all services here. Things that should be accessible
+# without the use of a reverse proxy should have their ports
+# forwarded as such:
+#
+# <host-port>:<container-port>
+#
+# If the service will be behind the reverse proxy then dont
+# worry about defining ports as you will be able to access them
+# via the proxy.
+#
+
+services:
+
+  #
+  # Network Services
+  #
+  # These services provide essential funcionality to the network
+  # such as DNS (pi-hole) and a reverse proxy.
+
+  proxy:
+    container_name: nginx-proxy-manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    environment:
+      DISABLE_IPV6: ${IPV6}
+    networks:
+      - outbound # Connect to outbound network to isolate from internal services
+      - internal # Connect to internal network to have a communication path with internal services
+    ports:
+      - '80:80'
+      - '443:443'
+      - '5172:81'
+    volumes:
+      - ./proxy/data:/data
+      - ./proxy/letsencrypt:/etc/letsencrypt
+
+  pihole:
+    container_name: pi-hole
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    environment:
+      # When deploying make sure to copy the .env.example file and fill in
+      # the appropriate fields.
+      - WEBPASSWORD=${PI_HOLE_WEBPASSWORD}
+    networks:
+      - internal
+    ports:
+      # We must port forward port 53 for tcp/udp traffic
+      # so we can use this as a DNS server for the network
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - "./etc/pihole:/etc/pihole"
+      - "./etc/dnsmasq.d:/etc/dnsmasq.d"
+
+  #
+  # Monitoring
+  #
+  # These services provide monitoring of other services
+  # as well a grafana dashboard for viewing the collected
+  # metrics.
+  #
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/config.yaml"
+    networks:
+      - internal
+    volumes:
+      - /prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+
+  node_exporter:
+    container_name: node_exporter
+    image: quay.io/prometheus/node_exporter:latest
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+
+  cadvisor:
+    container_name: cadvisor
+    image: google/cadvisor:latest
+    volumes:
+      - /:rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - grafana-data:/var/lib/grafana

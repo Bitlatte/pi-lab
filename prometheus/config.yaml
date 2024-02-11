@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+
+#
+# Scrape Configurations
+#
+# When setting targets use the following format:
+#
+# <container_name>:<port>
+#
+
+scrape_configs:
+
+  #
+  # Prometheus
+  #
+  # Sets Prometheus to collect metrics on itself
+  #
+  
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['prometheus:9090']
