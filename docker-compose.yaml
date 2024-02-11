@@ -162,6 +162,8 @@ services:
     container_name: homepage
     image: ghcr.io/gethomepage/homepage:latest
     restart: unless-stopped
+    environment:
+      - HOMEPAGE_VAR_PIHOLE_API_KEY=${HOMEPAGE_VAR_PIHOLE_API_KEY}
     networks:
       - internal
     volumes:
