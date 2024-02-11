@@ -143,6 +143,18 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
 
+  pihole-exporter:
+    container_name: pihole-exporter
+    image: ekofr/pihole-exporter:latest
+    restart: unless-stopped
+    environment:
+      - PIHOLE_HOSTNAME=pihole
+      - PIHOLE_PASSWORD=${PI_HOLE_WEBPASSWORD}
+      - PORT=9617
+    networks:
+      - monitoring
+      - internal
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
