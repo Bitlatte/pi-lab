@@ -21,15 +21,12 @@ networks:
 #
 
 volumes:
-  portainer_data:
-    external:
-      name: portainer_data
   prometheus-data:
-    external:
-      name: prometheus-data
+    name: prometheus-data
+    external: true
   grafana-data:
-    external:
-      name: grafana-data
+    name: grafana-data
+    external: true
 
 #
 # Services
@@ -123,6 +120,7 @@ services:
       - "--config.file=/etc/prometheus/config.yaml"
     networks:
       - internal
+      - monitoring
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus-data:/prometheus
@@ -136,8 +134,8 @@ services:
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    network_mode: host
-    pid: host
+    networks:
+      - monitoring
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
