@@ -133,6 +133,7 @@ services:
     restart: unless-stopped
     command:
       - '--path.rootfs=/host'
+      - '--cap-add=SYS_TIME'
     network_mode: host
     pid: host
     volumes:
