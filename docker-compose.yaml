@@ -124,7 +124,7 @@ services:
     networks:
       - internal
     volumes:
-      - /prometheus:/etc/prometheus
+      - ./prometheus:/etc/prometheus
       - prometheus-data:/prometheus
 
   node_exporter:
